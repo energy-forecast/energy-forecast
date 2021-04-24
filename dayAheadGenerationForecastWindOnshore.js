@@ -1,1 +1,0 @@
-var dayAheadGenerationForecastWindOnshore = null

@@ -1,21 +1,26 @@
-<!doctype html>
+package main
+
+var tmpl = `<!doctype html>
 <html>
 
 <head>
     <title>Electricity load / production forecast</title>
     <meta charset="utf-8" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.27.0/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.27.0/moment-with-locales.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3"></script>
     <script
         src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/0.5.7/chartjs-plugin-annotation.min.js"
         integrity="sha512-9hzM/Gfa9KP1hSBlq3/zyNF/dfbcjAYwUTBWYX+xi8fzfAPHL3ILwS1ci0CTVeuXTGkRAWgRMZZwtSNV7P+nfw=="
-        crossorigin="anonymous"></script>
-    <script src="dayAheadTotalLoadForecast.js"></script>
-    <script src="dayAheadGenerationForecastSolar.js"></script>
-    <script src="dayAheadGenerationForecastWindOffshore.js"></script>
-    <script src="dayAheadGenerationForecastWindOnshore.js"></script>
-    <script src="renewables.js"></script>
-    <script src="percent.js"></script>
+        crossorigin="anonymous">
+    </script>
+    <script>
+    	var forecastLoad = {{.ForecastLoad}}
+	    var forecastSolar = {{.ForecastSolar}}
+	    var forecastWindOnShore = {{.ForecastWindOnShore}}
+	    var forecastWindOffShore = {{.ForecastWindOffShore}}
+	    var forecastRenewables = {{.ForecastRenewables}}
+	    var forecastRenewablesPercent = {{.ForecastRenewablesPercent}}
+    </script>
     <style>
         canvas {
             -moz-user-select: none;
@@ -25,12 +30,15 @@
     </style>
 </head>
 
+
 <body>
     <div id="container" style="width: 100%;">
         <canvas id="canvas"></canvas>
     </div>
     <script>
         'use strict';
+
+        console.log(moment("2020-09-04T22:00:00Z").format());
 
         window.chartColors = {
             red: 'rgb(255, 99, 132)',
@@ -57,7 +65,7 @@
                             borderColor: "green",
                             pointBackgroundColor: "green",
                             pointRadius: 2,
-                            data: renewables,
+                            data: forecastRenewables,
                             type: 'line',
                             order: 4
                         },
@@ -65,8 +73,19 @@
                             label: 'Load total',
                             yAxisID: 'MW',
                             pointRadius: 5,
-                            data: dayAheadTotalLoadForecast,
+                            data: forecastLoad,
                             type: 'bar',
+                            order: 6
+                        },
+                        {
+                            label: '% renewables',
+                            yAxisID: 'percent',
+                            fill: false,
+                            borderColor: "maroon",
+                            pointBackgroundColor: "maroon",
+                            pointRadius: 2,
+                            data: forecastRenewablesPercent,
+                            type: 'line',
                             order: 5
                         },
                         {
@@ -76,7 +95,7 @@
                             borderColor: "yellow",
                             pointBackgroundColor: "yellow",
                             pointRadius: 2,
-                            data: dayAheadGenerationForecastSolar,
+                            data: forecastSolar,
                             type: 'line',
                             order: 1
                         },
@@ -87,7 +106,7 @@
                             borderColor: "blue",
                             pointBackgroundColor: "blue",
                             pointRadius: 2,
-                            data: dayAheadGenerationForecastWindOnshore,
+                            data: forecastWindOnShore,
                             type: 'line',
                             order: 2
                         },
@@ -99,7 +118,7 @@
                             borderColor: "lightblue",
                             pointBackgroundColor: "lightblue",
                             pointRadius: 2,
-                            data: dayAheadGenerationForecastWindOffshore,
+                            data: forecastWindOffShore,
                             type: 'line',
                             order: 3
                         },
@@ -113,7 +132,7 @@
                                 drawTime: 'afterDatasetsDraw',
                                 mode: "vertical",
                                 scaleID: "x-axis-0",
-                                value: moment().format("YYYY-MM-DD HH:MM:SS"),
+                                value: moment().format("YYYY-MM-DD HH:mm:ss"),
                                 borderColor: "red",
                                 borderWidth: 3,
                                 label: {
@@ -127,14 +146,21 @@
                     tooltips: {
                         callbacks: {
                             label: function (tooltipItem, data) {
-                                console.log(data);
                                 if (tooltipItem.datasetIndex == 1) {
-                                    console.log(tooltipItem);
-                                    return Number(tooltipItem.yLabel) + " MW (" + percent[tooltipItem.index].y + "% renewables)";
+                                    let addInfo = ""
+                                    if (typeof forecastRenewablesPercent[tooltipItem.index] != 'undefined') {
+                                        addInfo = " (" + forecastRenewablesPercent[tooltipItem.index].y + "% renewables)"
+                                    }
+                                    return Number(tooltipItem.yLabel) + " MW" + addInfo;
                                 } else {
-                                    return data.datasets[tooltipItem.datasetIndex].label + ": " + Number(tooltipItem.yLabel) + " MW";
+                                    if (tooltipItem.datasetIndex == 2) {
+                                        return Number(tooltipItem.yLabel) + "% renewables";
+                                    } else {
+                                        return data.datasets[tooltipItem.datasetIndex].label + ": " + Number(tooltipItem.yLabel) + " MW";
+                                    }
                                 }
-                            }
+                            },
+                            //title: (items, data) => console.log(items[0].xLabel),
                         }
                     },
                     responsive: true,
@@ -149,12 +175,16 @@
                         xAxes: [{
                             yAxisID: 'time',
                             type: 'time',
-                            time: {
-                                parser: 'YYYY-MM-DD HH:mm:ss',
-                            },
                             scaleLabel: {
                                 display: true,
                                 labelString: "time"
+                            },
+                            time: {
+                                tooltipFormat: 'lll',
+                                displayFormats: {
+                                    hour: 'MMM D / h:mm a',
+                                    minute: 'MMM D / h:mm a'
+                                }
                             }
                         }],
                         yAxes: [{
@@ -168,19 +198,32 @@
                                 display: true,
                                 labelString: "MW"
                             }
+                        },
+                        {
+                            id: 'percent',
+                            type: 'linear',
+                            position: 'right',
+                            ticks: {
+                                beginAtZero: true,
+                                max: 100
+                            },
+                            scaleLabel: {
+                                display: true,
+                                labelString: "%"
+                            }
                         }]
                     }
                 }
             });
 
             var x = []
-            for (var i = 0; i < percent.length; i++) {
+            for (var i = 0; i < forecastRenewablesPercent.length; i++) {
                 color = "green";
                 // You can check for bars[i].value and put your conditions here
-                if (percent[i].y > 50) {
+                if (forecastRenewablesPercent[i].y > 50) {
                     color = "rgba(0, 128, 0, 0.6)";
                 }
-                else if (percent[i].y < 30) {
+                else if (forecastRenewablesPercent[i].y < 30) {
                     color = "rgba(255, 0, 0, 0.6)";
 
                 }
@@ -195,5 +238,4 @@
         };
     </script>
 </body>
-
-</html>
+</html>`
