@@ -1,0 +1,1 @@
+var dayAheadGenerationForecastBiomass = null

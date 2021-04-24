@@ -1,0 +1,199 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>Electricity load / production forecast</title>
+    <meta charset="utf-8" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.27.0/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3"></script>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/0.5.7/chartjs-plugin-annotation.min.js"
+        integrity="sha512-9hzM/Gfa9KP1hSBlq3/zyNF/dfbcjAYwUTBWYX+xi8fzfAPHL3ILwS1ci0CTVeuXTGkRAWgRMZZwtSNV7P+nfw=="
+        crossorigin="anonymous"></script>
+    <script src="dayAheadTotalLoadForecast.js"></script>
+    <script src="dayAheadGenerationForecastSolar.js"></script>
+    <script src="dayAheadGenerationForecastWindOffshore.js"></script>
+    <script src="dayAheadGenerationForecastWindOnshore.js"></script>
+    <script src="renewables.js"></script>
+    <script src="percent.js"></script>
+    <style>
+        canvas {
+            -moz-user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container" style="width: 100%;">
+        <canvas id="canvas"></canvas>
+    </div>
+    <script>
+        'use strict';
+
+        window.chartColors = {
+            red: 'rgb(255, 99, 132)',
+            orange: 'rgb(255, 159, 64)',
+            yellow: 'rgb(255, 205, 86)',
+            green: 'rgb(75, 192, 192)',
+            blue: 'rgb(54, 162, 235)',
+            purple: 'rgb(153, 102, 255)',
+            grey: 'rgb(201, 203, 207)'
+        };
+        var color = Chart.helpers.color;
+
+        window.onload = function () {
+            var ctx = document.getElementById('canvas').getContext('2d');
+            window.myBar = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    datasets: [
+                        {
+                            label: 'Renewables total',
+                            yAxisID: 'MW',
+                            backgroundColor: color(window.chartColors.green).alpha(0.5).rgbString(),
+                            fill: false,
+                            borderColor: "green",
+                            pointBackgroundColor: "green",
+                            pointRadius: 2,
+                            data: renewables,
+                            type: 'line',
+                            order: 4
+                        },
+                        {
+                            label: 'Load total',
+                            yAxisID: 'MW',
+                            pointRadius: 5,
+                            data: dayAheadTotalLoadForecast,
+                            type: 'bar',
+                            order: 5
+                        },
+                        {
+                            label: 'Solar',
+                            yAxisID: 'MW',
+                            fill: false,
+                            borderColor: "yellow",
+                            pointBackgroundColor: "yellow",
+                            pointRadius: 2,
+                            data: dayAheadGenerationForecastSolar,
+                            type: 'line',
+                            order: 1
+                        },
+                        {
+                            label: 'Wind onshore',
+                            yAxisID: 'MW',
+                            fill: false,
+                            borderColor: "blue",
+                            pointBackgroundColor: "blue",
+                            pointRadius: 2,
+                            data: dayAheadGenerationForecastWindOnshore,
+                            type: 'line',
+                            order: 2
+                        },
+                        {
+                            label: 'Wind offshore',
+                            yAxisID: 'MW',
+                            backgroundColor: color(window.chartColors.lightblue).alpha(0.5).rgbString(),
+                            fill: false,
+                            borderColor: "lightblue",
+                            pointBackgroundColor: "lightblue",
+                            pointRadius: 2,
+                            data: dayAheadGenerationForecastWindOffshore,
+                            type: 'line',
+                            order: 3
+                        },
+                    ],
+                },
+                options: {
+                    annotation: {
+                        annotations: [
+                            {
+                                type: "line",
+                                drawTime: 'afterDatasetsDraw',
+                                mode: "vertical",
+                                scaleID: "x-axis-0",
+                                value: moment().format("YYYY-MM-DD HH:MM:SS"),
+                                borderColor: "red",
+                                borderWidth: 3,
+                                label: {
+                                    content: "now",
+                                    enabled: true,
+                                    position: "top"
+                                }
+                            }
+                        ]
+                    },
+                    tooltips: {
+                        callbacks: {
+                            label: function (tooltipItem, data) {
+                                console.log(data);
+                                if (tooltipItem.datasetIndex == 1) {
+                                    console.log(tooltipItem);
+                                    return Number(tooltipItem.yLabel) + " MW (" + percent[tooltipItem.index].y + "% renewables)";
+                                } else {
+                                    return data.datasets[tooltipItem.datasetIndex].label + ": " + Number(tooltipItem.yLabel) + " MW";
+                                }
+                            }
+                        }
+                    },
+                    responsive: true,
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Electricity load / production forecast'
+                    },
+                    scales: {
+                        xAxes: [{
+                            yAxisID: 'time',
+                            type: 'time',
+                            time: {
+                                parser: 'YYYY-MM-DD HH:mm:ss',
+                            },
+                            scaleLabel: {
+                                display: true,
+                                labelString: "time"
+                            }
+                        }],
+                        yAxes: [{
+                            id: 'MW',
+                            type: 'linear',
+                            position: 'left',
+                            ticks: {
+                                beginAtZero: true
+                            },
+                            scaleLabel: {
+                                display: true,
+                                labelString: "MW"
+                            }
+                        }]
+                    }
+                }
+            });
+
+            var x = []
+            for (var i = 0; i < percent.length; i++) {
+                color = "green";
+                // You can check for bars[i].value and put your conditions here
+                if (percent[i].y > 50) {
+                    color = "rgba(0, 128, 0, 0.6)";
+                }
+                else if (percent[i].y < 30) {
+                    color = "rgba(255, 0, 0, 0.6)";
+
+                }
+                else {
+                    color = "rgba(255, 165, 0, 0.6)";
+                }
+
+                x.push(color);
+            }
+            window.myBar.data.datasets[1].backgroundColor = x
+            window.myBar.update();
+        };
+    </script>
+</body>
+
+</html>
