@@ -25,7 +25,7 @@ func (t JSONTime) MarshalJSON() ([]byte, error) {
 }
 
 type TimeAndValue struct {
-	Time  goentsoe.JSONTime `json:"t"`
+	Time  goentsoe.JSONTime `json:"x"`
 	Value int64             `json:"y"`
 }
 

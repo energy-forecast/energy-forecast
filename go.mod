@@ -4,8 +4,8 @@ go 1.15
 
 require (
 	github.com/davecgh/go-spew v1.1.1
-	github.com/miku/zek v0.1.9 // indirect
-	github.com/sirupsen/logrus v1.6.0
+	github.com/miku/zek v0.1.10 // indirect
+	github.com/sirupsen/logrus v1.8.1
 	github.com/tjeske/go-entsoe v1.0.0
 )
 
