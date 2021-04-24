@@ -1,14 +1,9 @@
-module github.com/tjeske/canIwash
+module github.com/energy-forecast/energy-forecast
 
-go 1.15
+go 1.16
 
 require (
-	github.com/davecgh/go-spew v1.1.1
-	github.com/miku/zek v0.1.10 // indirect
+	github.com/energy-forecast/go-entsoe v0.0.0-20210425105215-92312cc84b5d // indirect
 	github.com/sirupsen/logrus v1.8.1
-	github.com/tjeske/go-entsoe v1.0.0
+	golang.org/x/sys v0.0.0-20210423185535-09eb48e85fd7 // indirect
 )
-
-replace github.com/foomo/simplecert => /Users/tjeske/go/src/github.com/tjeske/simplecert
-
-replace github.com/tjeske/go-entsoe => /Users/tjeske/go/src/github.com/tjeske/go-entsoe

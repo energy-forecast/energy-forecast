@@ -9,8 +9,8 @@ import (
 	"text/template"
 	"time"
 
+	goentsoe "github.com/energy-forecast/go-entsoe"
 	log "github.com/sirupsen/logrus"
-	goentsoe "github.com/tjeske/go-entsoe"
 )
 
 type Marshaler interface {
