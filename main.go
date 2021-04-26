@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "embed"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -28,6 +29,9 @@ type TimeAndValue struct {
 	Time  goentsoe.JSONTime `json:"x"`
 	Value int64             `json:"y"`
 }
+
+//go:embed dashboard.templ.html
+var dashBoardTempl string
 
 func main() {
 	http.HandleFunc("/", handler)
@@ -89,6 +93,8 @@ func (e *EnergyForcast) calculateAverage(psrType goentsoe.PsrType, domain goents
 
 type Forecasts struct {
 	ForecastLoad              string
+	ForecastBiomass           string
+	ForecastHydro             string
 	ForecastSolar             string
 	ForecastWindOnShore       string
 	ForecastWindOffShore      string
@@ -131,7 +137,11 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	renewablesTotal := make(map[goentsoe.JSONTime]int64)
 	percent := make(map[goentsoe.JSONTime]int64)
+	biomass := make(map[goentsoe.JSONTime]int64)
+	hydro := make(map[goentsoe.JSONTime]int64)
 	for _, v := range getSortedTimes(solar) {
+		biomass[v] = biomassAverage
+		hydro[v] = hydroRunAverage + hydroReservoirAverage
 		sum := solar[v] + windOnShore[v] + windOffShore[v] + biomassAverage + hydroRunAverage + hydroReservoirAverage
 		renewablesTotal[v] = sum
 		if total[v] != 0 {
@@ -139,13 +149,15 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	tpl, err := template.New("template").Parse(tmpl)
+	tpl, err := template.New("template").Parse(dashBoardTempl)
 	if err != nil {
 		log.Print(err)
 		return
 	}
 	f := Forecasts{}
 	f.ForecastLoad = getJson(total)
+	f.ForecastBiomass = getJson(biomass)
+	f.ForecastHydro = getJson(hydro)
 	f.ForecastSolar = getJson(solar)
 	f.ForecastWindOnShore = getJson(windOnShore)
 	f.ForecastWindOffShore = getJson(windOffShore)
