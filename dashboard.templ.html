@@ -58,6 +58,10 @@
                         pointBackgroundColor: "maroon",
                         pointRadius: 2,
                         data: forecastRenewablesPercent,
+                        parsing: {
+                            xAxisKey: 'time',
+                            yAxisKey: 'value'
+                        },
                         order: 1
                     }
                 ],
@@ -139,10 +143,10 @@
                 let color = "green";
                 if (i < forecastRenewablesPercent.length) {
                     // You can check for bars[i].value and put your conditions here
-                    if (forecastRenewablesPercent[i].y > 50) {
+                    if (forecastRenewablesPercent[i].value > 50) {
                         color = "rgba(0, 128, 0, 0.6)";
                     }
-                    else if (forecastRenewablesPercent[i].y < 30) {
+                    else if (forecastRenewablesPercent[i].value < 30) {
                         color = "rgba(255, 0, 0, 0.6)";
 
                     }
@@ -166,6 +170,10 @@
                         yAxisID: 'MW',
                         pointRadius: 2,
                         data: forecastLoad,
+                        parsing: {
+                            xAxisKey: 'time',
+                            yAxisKey: 'value'
+                        },
                         backgroundColor: 'maroon',
                         pointBackgroundColor: 'maroon',
                         borderColor: 'maroon',
@@ -183,6 +191,10 @@
                         pointBackgroundColor: '#3d8071',
                         pointRadius: 2,
                         data: forecastBiomass,
+                        parsing: {
+                            xAxisKey: 'time',
+                            yAxisKey: 'value'
+                        },
                         stack: 'Stack 0',
                         order: 1
                     },
@@ -195,6 +207,10 @@
                         pointBackgroundColor: '#4b87ba',
                         pointRadius: 2,
                         data: forecastHydro,
+                        parsing: {
+                            xAxisKey: 'time',
+                            yAxisKey: 'value'
+                        },
                         stack: 'Stack 0',
                         order: 2
                     },
@@ -207,6 +223,10 @@
                         pointBackgroundColor: '#ed8830',
                         pointRadius: 2,
                         data: forecastSolar,
+                        parsing: {
+                            xAxisKey: 'time',
+                            yAxisKey: 'value'
+                        },
                         stack: 'Stack 0',
                         order: 3
                     },
@@ -219,6 +239,10 @@
                         pointBackgroundColor: "#70ab9e",
                         pointRadius: 2,
                         data: forecastWindOnShore,
+                        parsing: {
+                            xAxisKey: 'time',
+                            yAxisKey: 'value'
+                        },
                         stack: 'Stack 0',
                         order: 4
                     },
@@ -231,6 +255,10 @@
                         pointBackgroundColor: '#88d0c0',
                         pointRadius: 2,
                         data: forecastWindOffShore,
+                        parsing: {
+                            xAxisKey: 'time',
+                            yAxisKey: 'value'
+                        },
                         stack: 'Stack 0',
                         order: 5
                     },
@@ -270,7 +298,7 @@
                                     if (tooltipItem.datasetIndex == 0) {
                                         let addInfo = ""
                                         if (typeof forecastRenewablesPercent[tooltipItem.dataIndex] != 'undefined') {
-                                            addInfo = " (" + forecastRenewablesPercent[tooltipItem.dataIndex].y + "% renewables)"
+                                            addInfo = " (" + forecastRenewablesPercent[tooltipItem.dataIndex].value + "% renewables)"
                                         }
                                         return Number(tooltipItem.formattedValue) + " MW" + addInfo;
                                     } else {
